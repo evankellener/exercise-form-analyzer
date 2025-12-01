@@ -20,3 +20,8 @@ Thumbs.db
 data/processed/*
 results/*
 models/*
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover

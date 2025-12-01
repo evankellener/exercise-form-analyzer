@@ -21,7 +21,8 @@ This project implements a simple, rule-based system to analyze exercise form (st
 ├── results/          # Analysis summaries, debug videos, screenshots
 ├── src/
 │   ├── pipeline.py   # Main pose-estimation + rule-based analysis pipeline
-│   └── utils.py      # Shared helper functions (if needed)
+│   └── utils.py      # Shared helper functions for geometric calculations
+├── tests/            # Unit tests for the pipeline and utilities
 ├── .gitignore
 ├── requirements.txt
 └── README.md
@@ -80,12 +81,39 @@ This will:
 - Print an aggregate summary to the terminal
 - Optionally save a debug video with pose overlays to `results/squat_debug.mp4`
 
-You can tweak thresholds and logic inside `src/pipeline.py` to better match your own labeling.
+### Additional Options
+
+```bash
+# Save frame-by-frame analysis to CSV
+python src/pipeline.py --video data/raw/squat_front.mp4 --save-csv
+
+# Disable debug video output for faster processing
+python src/pipeline.py --video data/raw/squat_front.mp4 --no-debug-video
+
+# Customize output paths
+python src/pipeline.py --video data/raw/squat_front.mp4 --csv-output results/my_analysis.csv --debug-output results/my_debug.mp4
+```
+
+### Configurable Thresholds
+
+You can tweak the evaluation thresholds in `src/pipeline.py` under `SQUAT_THRESHOLDS`:
+
+- `max_torso_lean`: Maximum acceptable forward lean in degrees (default: 35°)
+- `min_knee_bend_for_depth`: Knee angle above this is considered shallow (default: 80°)
+- `max_knee_offset`: Maximum normalized knee deviation (default: 0.08)
+
+## Testing
+
+Run the test suite:
+
+```bash
+python -m pytest tests/ -v
+```
 
 ## Extension Ideas
 
 - Add support for **pushups** and **lunges** with their own feature sets and rules.
-- Save frame-wise features and system judgments to a CSV in `results/` for easier analysis.
+- ~~Save frame-wise features and system judgments to a CSV in `results/` for easier analysis.~~ ✅ Implemented
 - Create a small comparison table: **Human vs System** labels for 3–5 videos.
 - Capture screenshots and plots for your final paper and presentation.
 
