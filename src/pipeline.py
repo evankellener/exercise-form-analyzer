@@ -264,6 +264,9 @@ def main():
     for k, v in summary.items():
         print(f"{k}: {v}")
 
+    if debug and os.path.exists(debug_output_path):
+        print(f"\nVideo with landmarks saved to: {debug_output_path}")
+
 
 if __name__ == "__main__":
     main()
