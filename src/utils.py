@@ -103,7 +103,10 @@ def save_features_to_csv(features_list, output_path, exercise_type="squat"):
     if not features_list:
         return
     
-    os.makedirs(os.path.dirname(output_path) if os.path.dirname(output_path) else ".", exist_ok=True)
+    # Handle case where output_path has no directory component
+    output_dir = os.path.dirname(output_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
     
     # Get all unique keys from features
     all_keys = set()

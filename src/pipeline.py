@@ -32,6 +32,16 @@ JOINTS = {
     "right_wrist": POSE_LANDMARKS.RIGHT_WRIST,
 }
 
+# Squat form thresholds
+SQUAT_MAX_TORSO_LEAN = 35.0       # degrees, max acceptable forward lean
+SQUAT_MIN_KNEE_BEND = 80.0       # degrees, angles > this indicate shallow squat
+SQUAT_MAX_KNEE_OFFSET = 0.08     # normalized, max knee deviation from hip-ankle midline
+
+# Pushup form thresholds
+PUSHUP_MIN_ELBOW_ANGLE = 90.0    # degrees, minimum elbow bend at bottom position
+PUSHUP_MAX_ELBOW_ANGLE = 160.0   # degrees, threshold for "arms too extended"
+PUSHUP_MAX_HIP_DEVIATION = 0.05  # normalized, max hip sag/pike allowed
+
 
 def extract_squat_features_from_frame(landmarks, image_width, image_height):
     """
@@ -70,23 +80,19 @@ def evaluate_squat_frame(features):
     knee_angle = features.get("knee_angle_deg")
     knee_offset = features.get("knee_offset_norm")
 
-    MAX_TORSO_LEAN = 35.0       # degrees
-    MIN_KNEE_BEND_FOR_DEPTH = 80.0  # degrees, >80 => shallow
-    MAX_KNEE_OFFSET = 0.08      # normalized
-
     if torso_angle is None or knee_angle is None:
         return {
             "valid": False,
             "issues": ["Pose landmarks too unreliable in this frame."]
         }
 
-    if torso_angle > MAX_TORSO_LEAN:
+    if torso_angle > SQUAT_MAX_TORSO_LEAN:
         issues.append("Excessive forward torso lean.")
 
-    if knee_angle > MIN_KNEE_BEND_FOR_DEPTH:
+    if knee_angle > SQUAT_MIN_KNEE_BEND:
         issues.append("Squat depth appears shallow (knee not flexed enough).")
 
-    if abs(knee_offset) > MAX_KNEE_OFFSET:
+    if abs(knee_offset) > SQUAT_MAX_KNEE_OFFSET:
         issues.append("Possible knee misalignment (valgus/varus).")
 
     if not issues:
@@ -102,6 +108,9 @@ def extract_pushup_features_from_frame(landmarks, image_width, image_height):
     """
     Extract pushup-related features from MediaPipe landmarks.
     Focuses on arm position, body alignment, and depth.
+    
+    Note: Currently uses left-side landmarks only. For best results,
+    ensure the left side of the body is visible to the camera.
     """
     left_shoulder = get_landmark_xy(landmarks, JOINTS["left_shoulder"], image_width, image_height)
     left_hip = get_landmark_xy(landmarks, JOINTS["left_hip"], image_width, image_height)
@@ -137,9 +146,6 @@ def evaluate_pushup_frame(features):
     body_angle = features.get("body_angle_deg")
     hip_deviation = features.get("hip_deviation_norm")
 
-    MIN_ELBOW_ANGLE_BOTTOM = 90.0  # degrees, should be ~90 at bottom
-    MAX_HIP_DEVIATION = 0.05       # normalized, hip shouldn't sag or pike too much
-
     if elbow_angle is None or body_angle is None:
         return {
             "valid": False,
@@ -147,12 +153,12 @@ def evaluate_pushup_frame(features):
         }
 
     # If elbow angle is too large, might not be going deep enough
-    if elbow_angle > 160.0:
+    if elbow_angle > PUSHUP_MAX_ELBOW_ANGLE:
         issues.append("Arms appear too extended (at top of movement).")
-    elif elbow_angle > MIN_ELBOW_ANGLE_BOTTOM:
+    elif elbow_angle > PUSHUP_MIN_ELBOW_ANGLE:
         issues.append("Pushup depth may be insufficient (elbows not bent enough).")
 
-    if abs(hip_deviation) > MAX_HIP_DEVIATION:
+    if abs(hip_deviation) > PUSHUP_MAX_HIP_DEVIATION:
         if hip_deviation > 0:
             issues.append("Hip appears to be sagging (lower back arched).")
         else:
