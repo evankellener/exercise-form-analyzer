@@ -251,7 +251,9 @@ def main():
     args = parser.parse_args()
 
     debug = not args.no_debug_video
-    debug_output_path = "results/squat_debug.mp4"
+    # Derive debug output filename from input video
+    input_basename = os.path.splitext(os.path.basename(args.video))[0]
+    debug_output_path = os.path.join("results", f"{input_basename}_debug.mp4")
 
     summary = analyze_squat_video(
         video_path=args.video,
