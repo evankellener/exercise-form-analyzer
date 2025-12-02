@@ -10,18 +10,17 @@ os.environ["MP_VERBOSE"] = "0"
 # Suppress Python warnings
 warnings.filterwarnings("ignore")
 
-# Redirect stderr at file descriptor level to suppress all MediaPipe/TensorFlow warnings
-# Keep it suppressed globally since we only print to stdout
+# NOTE: Global stderr redirection was removed to allow exceptions and tracebacks
+# to be visible to users for debugging. Local suppression via SuppressStderr context
+# manager is used around pose.process() calls to keep MediaPipe/TensorFlow logs quiet
+# while still allowing errors to propagate to stderr.
 _null_fd = os.open(os.devnull, os.O_WRONLY)
 _original_stderr_fd = os.dup(sys.stderr.fileno())
-os.dup2(_null_fd, sys.stderr.fileno())
 
 import argparse
 import cv2
 import numpy as np
 import mediapipe as mp
-
-# Keep stderr suppressed - we only use stdout for output
 
 class SuppressStderr:
     """Context manager to suppress stderr during MediaPipe operations"""
@@ -268,7 +267,8 @@ def analyze_pushup_video(path, draw=False, save_debug=False, debug_path="results
             h, w = frame.shape[:2]
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            results = pose.process(rgb)
+            with SuppressStderr():
+                results = pose.process(rgb)
 
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
@@ -405,7 +405,8 @@ def analyze_squat_video(path, draw=False, save_debug=False, debug_path="results/
             h, w = frame.shape[:2]
             rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-            results = pose.process(rgb)
+            with SuppressStderr():
+                results = pose.process(rgb)
 
             if results.pose_landmarks:
                 lm = results.pose_landmarks.landmark
