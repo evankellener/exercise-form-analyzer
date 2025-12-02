@@ -69,22 +69,48 @@ data/raw/squat_side.mp4
 Run the basic squat analysis pipeline:
 
 ```bash
-python src/pipeline.py --video data/raw/squat_front.mp4
+python src/pipeline.py --video data/raw/squats/positive_squat_01.mp4
 ```
+
+### Analyzing Pushups
+
+Run the pushup analysis pipeline:
+
+```bash
+python src/pipeline.py --video data/raw/push-ups/positive_pushup_01.mp4 --exercise pushup
+```
+
+### Live Popup Window
+
+Display a real-time popup window with pose landmarks overlaid on the video:
+
+```bash
+python src/pipeline.py --video data/raw/squats/positive_squat_01.mp4 --show-popup
+```
+
+Press `q` to close the popup window early.
+
+### Command-line Options
+
+- `--video`: Path to the video file (required)
+- `--exercise`: Type of exercise to analyze: `squat` or `pushup` (default: `squat`)
+- `--no-debug-video`: Skip saving the debug video with pose overlays
+- `--show-popup`: Show a real-time popup window with landmarks overlay
 
 This will:
 
 - Run MediaPipe Pose on each frame
-- Compute simple squat-related features
-- Apply heuristic rules (torso lean, squat depth, knee alignment)
+- Compute exercise-specific features (squat: torso lean, squat depth, knee alignment; pushup: elbow angles, body alignment, hip position)
+- Apply heuristic rules for form evaluation
 - Print an aggregate summary to the terminal
-- Optionally save a debug video with pose overlays to `results/squat_debug.mp4`
+- Optionally save a debug video with pose overlays to `results/`
+- Optionally display a live popup window with landmarks (using `--show-popup`)
 
 You can tweak thresholds and logic inside `src/pipeline.py` to better match your own labeling.
 
 ## Extension Ideas
 
-- Add support for **pushups** and **lunges** with their own feature sets and rules.
+- Add support for **lunges** with their own feature sets and rules.
 - Save frame-wise features and system judgments to a CSV in `results/` for easier analysis.
 - Create a small comparison table: **Human vs System** labels for 3–5 videos.
 - Capture screenshots and plots for your final paper and presentation.
