@@ -8,6 +8,7 @@ __pycache__/
 # Virtual environments
 .venv/
 venv/
+form_env/
 
 # OS files
 .DS_Store
