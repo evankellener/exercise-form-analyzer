@@ -53,6 +53,30 @@ JOINTS = {
     "right_wrist": POSE_LANDMARKS.RIGHT_WRIST,
 }
 
+# Squat analysis thresholds
+SQUAT_MAX_TORSO_LEAN = 35.0
+SQUAT_MIN_KNEE_BEND = 80.0
+SQUAT_MAX_KNEE_OFFSET = 0.08
+
+# Pushup analysis thresholds
+PUSHUP_MAX_ELBOW_ANGLE_DIFF = 15.0  # Elbows should be roughly symmetric
+PUSHUP_MIN_BODY_ALIGNMENT = 160.0  # Body should be close to straight (180 deg)
+PUSHUP_MAX_HIP_SAG = 0.05  # Max downward hip deviation
+PUSHUP_MAX_HIP_PIKE = -0.05  # Max upward hip deviation (negative = hips too high)
+
+# Issue type constants
+ISSUE_FORM_ACCEPTABLE = "Form acceptable"
+ISSUE_POSE_UNRELIABLE = "Pose landmarks unreliable"
+# Squat issues
+ISSUE_FORWARD_LEAN = "Forward torso lean"
+ISSUE_SHALLOW_DEPTH = "Shallow squat depth"
+ISSUE_KNEE_ALIGNMENT = "Knee alignment issue"
+# Pushup issues
+ISSUE_ASYMMETRIC_ARMS = "Asymmetric arm position"
+ISSUE_HIP_SAG = "Hip sag detected"
+ISSUE_HIP_PIKE = "Hip pike detected"
+ISSUE_BODY_ALIGNMENT = "Body alignment issue"
+
 
 def get_landmark_xy(landmarks, idx, w, h):
     lm = landmarks[idx.value]
@@ -109,25 +133,21 @@ def evaluate_squat_frame(features):
     knee_offset = features["knee_offset_norm"]
 
     if torso is None or knee_angle is None:
-        return {"valid": False, "issues": ["Pose landmarks unreliable"]}
-
-    MAX_TORSO_LEAN = 35.0
-    MIN_KNEE_BEND = 80.0
-    MAX_KNEE_OFFSET = 0.08
+        return {"valid": False, "issues": [ISSUE_POSE_UNRELIABLE]}
 
     issues = []
 
-    if torso > MAX_TORSO_LEAN:
-        issues.append("Forward torso lean")
+    if torso > SQUAT_MAX_TORSO_LEAN:
+        issues.append(ISSUE_FORWARD_LEAN)
 
-    if knee_angle > MIN_KNEE_BEND:
-        issues.append("Shallow squat depth")
+    if knee_angle > SQUAT_MIN_KNEE_BEND:
+        issues.append(ISSUE_SHALLOW_DEPTH)
 
-    if abs(knee_offset) > MAX_KNEE_OFFSET:
-        issues.append("Knee alignment issue")
+    if abs(knee_offset) > SQUAT_MAX_KNEE_OFFSET:
+        issues.append(ISSUE_KNEE_ALIGNMENT)
 
     if not issues:
-        issues.append("Form acceptable")
+        issues.append(ISSUE_FORM_ACCEPTABLE)
 
     return {"valid": True, "issues": issues}
 
@@ -161,8 +181,10 @@ def extract_pushup_features_from_frame(landmarks, w, h):
     shoulder_hip_vec = mid_hip - mid_shoulder
     
     # Project hip onto shoulder-ankle line to find expected position
-    if np.linalg.norm(shoulder_ankle_vec) > 0:
-        t = np.dot(shoulder_hip_vec, shoulder_ankle_vec) / np.dot(shoulder_ankle_vec, shoulder_ankle_vec)
+    # Use a small epsilon to avoid floating-point precision issues
+    vec_dot = np.dot(shoulder_ankle_vec, shoulder_ankle_vec)
+    if vec_dot > 1e-8:
+        t = np.dot(shoulder_hip_vec, shoulder_ankle_vec) / vec_dot
         expected_hip = mid_shoulder + t * shoulder_ankle_vec
         hip_deviation = (mid_hip[1] - expected_hip[1]) / h  # Normalized vertical deviation
     else:
@@ -184,31 +206,25 @@ def evaluate_pushup_frame(features):
     hip_deviation = features["hip_deviation_norm"]
 
     if left_elbow is None or right_elbow is None or body_alignment is None:
-        return {"valid": False, "issues": ["Pose landmarks unreliable"]}
-
-    # Thresholds for pushup form
-    MAX_ELBOW_ANGLE_DIFF = 15.0  # Elbows should be roughly symmetric
-    MIN_BODY_ALIGNMENT = 160.0  # Body should be close to straight (180 deg)
-    MAX_HIP_SAG = 0.05  # Max downward hip deviation
-    MAX_HIP_PIKE = -0.05  # Max upward hip deviation (negative = hips too high)
+        return {"valid": False, "issues": [ISSUE_POSE_UNRELIABLE]}
 
     issues = []
 
     # Check elbow symmetry
-    if abs(left_elbow - right_elbow) > MAX_ELBOW_ANGLE_DIFF:
-        issues.append("Asymmetric arm position")
+    if abs(left_elbow - right_elbow) > PUSHUP_MAX_ELBOW_ANGLE_DIFF:
+        issues.append(ISSUE_ASYMMETRIC_ARMS)
 
     # Check body alignment (should be close to 180 degrees for straight line)
-    if body_alignment < MIN_BODY_ALIGNMENT:
-        if hip_deviation > MAX_HIP_SAG:
-            issues.append("Hip sag detected")
-        elif hip_deviation < MAX_HIP_PIKE:
-            issues.append("Hip pike detected")
+    if body_alignment < PUSHUP_MIN_BODY_ALIGNMENT:
+        if hip_deviation > PUSHUP_MAX_HIP_SAG:
+            issues.append(ISSUE_HIP_SAG)
+        elif hip_deviation < PUSHUP_MAX_HIP_PIKE:
+            issues.append(ISSUE_HIP_PIKE)
         else:
-            issues.append("Body alignment issue")
+            issues.append(ISSUE_BODY_ALIGNMENT)
 
     if not issues:
-        issues.append("Form acceptable")
+        issues.append(ISSUE_FORM_ACCEPTABLE)
 
     return {"valid": True, "issues": issues}
 
@@ -263,13 +279,13 @@ def analyze_pushup_video(path, draw=False, save_debug=False, debug_path="results
                     valid += 1
                     issues = eval_res["issues"]
 
-                    if any("Asymmetric" in i for i in issues):
+                    if ISSUE_ASYMMETRIC_ARMS in issues:
                         asymmetric += 1
-                    if any("sag" in i for i in issues):
+                    if ISSUE_HIP_SAG in issues:
                         hip_sag += 1
-                    if any("pike" in i for i in issues):
+                    if ISSUE_HIP_PIKE in issues:
                         hip_pike += 1
-                    if any("alignment" in i.lower() for i in issues):
+                    if ISSUE_BODY_ALIGNMENT in issues:
                         alignment_issue += 1
 
                 if draw or save_debug or show_popup:
@@ -340,7 +356,7 @@ def print_pushup_summary(res):
     print("\n=== Pushup Analysis Summary ===")
     print(f"Video:            {res['video_path']}")
     print(f"Frames analyzed:  {res['total_frames']}")
-    print(f"Valid pose frames:{res['valid_frames']}")
+    print(f"Valid pose frames: {res['valid_frames']}")
     if "message" in res:
         print(f"Message:          {res['message']}")
     else:
@@ -400,11 +416,11 @@ def analyze_squat_video(path, draw=False, save_debug=False, debug_path="results/
                     valid += 1
                     issues = eval_res["issues"]
 
-                    if any("Forward" in i for i in issues):
+                    if ISSUE_FORWARD_LEAN in issues:
                         lean += 1
-                    if any("Shallow" in i for i in issues):
+                    if ISSUE_SHALLOW_DEPTH in issues:
                         shallow += 1
-                    if any("Knee" in i for i in issues):
+                    if ISSUE_KNEE_ALIGNMENT in issues:
                         knee_issue += 1
 
                 if draw or save_debug or show_popup:
@@ -470,7 +486,7 @@ def print_clean_summary(res):
     print("\n=== Squat Analysis Summary ===")
     print(f"Video:            {res['video_path']}")
     print(f"Frames analyzed:  {res['total_frames']}")
-    print(f"Valid pose frames:{res['valid_frames']}")
+    print(f"Valid pose frames: {res['valid_frames']}")
     if "message" in res:
         print(f"Message:          {res['message']}")
     else:
