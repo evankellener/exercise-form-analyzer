@@ -36,6 +36,17 @@ def cmd_segment(args):
     print(summarize_reps(reps, pose_data["fps"]))
 
 
+def cmd_live(args):
+    from .live import run
+    from .model import MultiLabelModel, MODEL_DIR
+    model_path = MODEL_DIR / f"squat_multilabel_{args.model}.pkl"
+    if not model_path.exists():
+        raise SystemExit(f"No trained model at {model_path}. Run `python -m src.batch --train` first.")
+    model = MultiLabelModel.load(model_path)
+    run(model=model, camera_index=args.camera,
+        mirror=not args.no_mirror, record_path=args.record)
+
+
 def main():
     parser = argparse.ArgumentParser(description="SquatCoach — squat form analyzer")
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -51,6 +62,13 @@ def main():
     p_seg.add_argument("--video", required=True)
     p_seg.add_argument("--no-cache", action="store_true")
     p_seg.set_defaults(func=cmd_segment)
+
+    p_live = sub.add_parser("live", help="Webcam live mode (press q to quit).")
+    p_live.add_argument("--model", choices=["rf", "logreg"], default="rf")
+    p_live.add_argument("--camera", type=int, default=0)
+    p_live.add_argument("--no-mirror", action="store_true")
+    p_live.add_argument("--record", default=None)
+    p_live.set_defaults(func=cmd_live)
 
     args = parser.parse_args()
     args.func(args)
