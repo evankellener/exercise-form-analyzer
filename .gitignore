@@ -19,5 +19,16 @@ Thumbs.db
 
 # Data and results (keep raw small videos locally if they’re large)
 data/processed/*
+data/features.csv
+data/interim/
 results/*
+!results/.gitkeep
 models/*
+!models/.gitkeep
+
+# Claude/editor local state
+.claude/
+
+# Submission artifacts
+*.pdf
+*.zip

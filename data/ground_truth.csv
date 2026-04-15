@@ -1,0 +1,13 @@
+video,exercise,view,expected_issues,expected_good,split,notes
+data/raw/squats/good/squat_good_side_01.mov,squat,side,,true,train,self-filmed
+data/raw/squats/good/squat_good_side_02.mov,squat,side,,true,train,self-filmed
+data/raw/squats/good/squat_good_front_01.mov,squat,front,,true,train,self-filmed
+data/raw/squats/good/squat_good_front_02.mov,squat,front,,true,test,self-filmed (retake of 01)
+data/raw/squats/bad/squat_bad_lean_side_01.mov,squat,side,Forward torso lean,false,train,
+data/raw/squats/bad/squat_bad_lean_side_02.mov,squat,side,Forward torso lean,false,test,
+data/raw/squats/bad/squat_bad_shallow_side_01.mov,squat,side,Shallow squat depth,false,train,
+data/raw/squats/bad/squat_bad_shallow_side_02.mov,squat,side,Shallow squat depth,false,train,
+data/raw/squats/bad/squat_bad_multi_side_01.mov,squat,side,Forward torso lean;Shallow squat depth,false,train,
+data/raw/squats/bad/squat_bad_kneecave_front_01.mov,squat,front,Knee alignment issue,false,train,
+data/raw/squats/bad/squat_bad_kneecave_front_02.mov,squat,front,Knee alignment issue,false,train,
+data/raw/squats/bad/squat_bad_kneecave_front_03.mov,squat,front,Knee alignment issue,false,test,one knee worse than other

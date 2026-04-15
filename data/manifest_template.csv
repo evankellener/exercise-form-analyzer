@@ -1,0 +1,45 @@
+url,exercise,label,start,end,notes
+# SQUATS — GOOD (10 slots). Side view preferred, full body visible, 10-30s clips.
+,squat,good,,,good-side-view-1
+,squat,good,,,good-side-view-2
+,squat,good,,,good-side-view-3
+,squat,good,,,good-side-view-4
+,squat,good,,,good-side-view-5
+,squat,good,,,good-front-view-1
+,squat,good,,,good-female-lifter-1
+,squat,good,,,good-male-lifter-1
+,squat,good,,,good-bodyweight-1
+,squat,good,,,good-barbell-1
+# SQUATS — BAD (10 slots) — aim for ~3 per single-issue type plus 1 multi.
+,squat,bad,,,bad-forward-lean-1
+,squat,bad,,,bad-forward-lean-2
+,squat,bad,,,bad-forward-lean-3
+,squat,bad,,,bad-shallow-depth-1
+,squat,bad,,,bad-shallow-depth-2
+,squat,bad,,,bad-shallow-depth-3
+,squat,bad,,,bad-knee-alignment-1
+,squat,bad,,,bad-knee-alignment-2
+,squat,bad,,,bad-knee-alignment-3
+,squat,bad,,,bad-multi-issue-1
+# PUSHUPS — GOOD (10 slots)
+,pushup,good,,,good-side-view-1
+,pushup,good,,,good-side-view-2
+,pushup,good,,,good-side-view-3
+,pushup,good,,,good-side-view-4
+,pushup,good,,,good-side-view-5
+,pushup,good,,,good-front-view-1
+,pushup,good,,,good-female-1
+,pushup,good,,,good-male-1
+,pushup,good,,,good-slow-tempo-1
+,pushup,good,,,good-standard-1
+# PUSHUPS — BAD (10 slots)
+,pushup,bad,,,bad-asymmetric-arms-1
+,pushup,bad,,,bad-asymmetric-arms-2
+,pushup,bad,,,bad-asymmetric-arms-3
+,pushup,bad,,,bad-hip-sag-1
+,pushup,bad,,,bad-hip-sag-2
+,pushup,bad,,,bad-hip-sag-3
+,pushup,bad,,,bad-hip-pike-1
+,pushup,bad,,,bad-hip-pike-2
+,pushup,bad,,,bad-multi-issue-1
+,pushup,bad,,,bad-multi-issue-2
